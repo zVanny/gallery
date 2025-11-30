@@ -1,31 +1,39 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { LinearGradient } from 'expo-linear-gradient';
 
 export function HomeView() {
     return (
         <LinearGradient
-            colors={['#c7d7ff', '#e6ccff']} 
+            colors={['#c7d7ff', '#e6ccff']}
             style={styles.bg}
         >
-        <View style={styles.container}>
+            <View style={styles.container}>
 
-            <Text style={styles.title}>Bienvenido</Text>
+                <Text style={styles.title}>Bienvenido</Text>
 
-            <TouchableOpacity
-                style={styles.button}
-                onPress={() => router.push('/account')}>
-                <Text style={styles.buttonText}>Cuenta de Usuario</Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => router.push('/account')}
+                >
+                    <Text style={styles.buttonText}>Cuenta de Usuario</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-                style={styles.button}
-                onPress={() => router.push('/gallery')}>
-                <Text style={styles.buttonText}>Galería</Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => router.push('/gallery')}
+                >
+                    <Text style={styles.buttonText}>Galería</Text>
+                </TouchableOpacity>
 
-        </View>
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => router.push('/notes')}
+                >
+                    <Text style={styles.buttonText}>Notas</Text>
+                </TouchableOpacity>
+            </View>
         </LinearGradient>
     );
 }

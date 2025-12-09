@@ -1,60 +1,100 @@
-//GalleryView.tsx
-//vista para la gallery
+// GalleryView.tsx
+//vista para la galeria 
 
-
-
-import { useState } from "react";
-import { FlatList, Image, StyleSheet, View } from "react-native";
-import { ImagePicker } from "./components/ImagePicker";
-
+import { supabase } from "@/lib/supabase";
+import { useEffect, useState } from "react";
+import { FlatList, Image, StyleSheet, TouchableOpacity, View } from "react-native";
+import { ImageDelete } from "../gallery/components/ImageDelete";
+import { ImagePicker } from "../gallery/components/ImagePicker";
 
 export function GalleryView() {
-    //estado para la coleccion de imagenes
+
     const [images, setImages] = useState<string[]>([]);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+    useEffect(() => {
+        async function loadImages() {
+            const { data, error } = await supabase.storage
+                .from("gallery")
+                .list("public"); 
 
-    //funcion para agregar nueva imagen a la coleccion
+            if (error) {
+                console.error("Error al listar imágenes:", error.message);
+                return;
+            }
+
+            const urls = data.map(file => {
+                const { data } = supabase.storage
+                    .from("gallery")
+                    .getPublicUrl(`public/${file.name}`);
+
+                return data.publicUrl;
+            });
+
+            setImages(urls);
+        }
+
+        loadImages();
+    }, []);
+
     const addPhoto = (uri: string) => {
-        //armar nuevo arreglo, donde la nueva foto va al inicio 
-        //y tomar todas las imagenes acruales en images
-        setImages([uri, ...images])
-    }
-    return (
-        <View
-            style={styles.container}
-        >
-            <ImagePicker
-                onPhotoSelected={addPhoto}
-            />
+        setImages([uri, ...images]);
+    };
 
-            {/* mostrar las fotos con Flatlist*/}
+    const deleteImage = async (url: string) => {
+        try {
+            const path = url.split("/").slice(-2).join("/");
+
+            const { error } = await supabase.storage
+                .from("gallery")
+                .remove([path]);
+
+            if (error) {
+                console.error("Error al eliminar imagen:", error.message);
+                return;
+            }
+
+            setImages(images.filter(img => img !== url));
+            setSelectedImage(null);
+        } catch (err) {
+            console.error("Error:", err);
+        }
+    };
+
+    return (
+        <View style={style.container}>
+            <ImagePicker onPhotoSelected={addPhoto} />
 
             <FlatList
                 data={images}
-                keyExtractor={(item, index) => index.toString()}
-                numColumns={3} //3 fotos por fila
-                contentContainerStyle={styles.gallery}
                 renderItem={({ item }) => (
-                    <Image source={{ uri: item }} style={styles.image} />
-        )}
+                    <TouchableOpacity onPress={() => setSelectedImage(item)}>
+                        <Image source={{ uri: item }} style={style.image} />
+                    </TouchableOpacity>
+                )}
+                keyExtractor={(item, index) => item ?? index.toString()}
+            />
+
+            <ImageDelete
+                imageUrl={selectedImage}
+                onCancel={() => setSelectedImage(null)}
+                onDelete={deleteImage}
             />
         </View>
     );
 }
 
-const styles = StyleSheet.create({
+const style = StyleSheet.create({
     container: {
         paddingTop: 60,
         paddingHorizontal: 16,
-    },
-    gallery: {
-        marginTop: 20,
-        justifyContent: "center",
+        flex: 1,
+        backgroundColor: "#f0f0f0"
     },
     image: {
-        width: 100,
-        height: 100,
-        borderRadius: 10,
-        margin: 5,
+        width: "100%",
+        height: 200,
+        marginVertical: 8,
+        borderRadius: 8
     }
-})
+});
